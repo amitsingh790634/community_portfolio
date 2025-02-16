@@ -1,18 +1,18 @@
+
+#pull a base image that gives all required tools and libraries
 FROM node:18-alpine
 
-# Set the working directory
+# create a folder where he app code will be stored
 WORKDIR /app
 
-# Copy package files and install dependencies
-COPY package*.json ./
-RUN npm install
+#Copy the source code from your HOST machine to your container 
+COPY . . 
 
-# Copy the entire project and build the application
-COPY . .
-RUN npm run build
+#install requiremt files 
+RUN npm install && npm run build
 
-# Expose the application port
+# given Expose port and this given by developer
 EXPOSE 3000
 
-# Start the application
-CMD ["npm", "start"]
+# run the application
+CMD ["npm", "run","dev"]
