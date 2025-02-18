@@ -1,0 +1,57 @@
+
+
+
+# ==========================
+# Stage 1: Build Environment
+# ==========================
+
+# ✅ Use a lightweight Node.js 18 image
+FROM node:18-alpine AS builder  
+
+# ✅ Set the working directory
+WORKDIR /app  
+
+# ✅ Copy package.json and package-lock.json first for caching
+COPY package*.json ./  
+
+# ✅ Install ALL dependencies (including Tailwind CSS)
+RUN npm install  
+
+# ✅ Copy the entire project after installing dependencies
+COPY . .  
+
+# ✅ Run Next.js build
+RUN npm run build  
+
+# ✅ Remove development dependencies after build
+RUN npm prune --omit=dev
+
+# ==========================
+# Stage 2: Runtime Environment (Minimal and Secure)
+# ==========================
+
+# ✅ Use a secure Node.js 18 distroless image
+FROM gcr.io/distroless/nodejs18  
+
+# ✅ Set the working directory
+WORKDIR /app  
+
+# ✅ Copy only required files from the builder stage
+COPY --from=builder /app/.next .next  
+COPY --from=builder /app/package.json package.json  
+COPY --from=builder /app/node_modules node_modules  
+COPY --from=builder /app/public public  
+
+# ✅ Set environment variables for production mode
+ENV NODE_ENV=production  
+
+# ✅ Expose port 3000 for Next.js
+EXPOSE 3000  
+
+# ✅ Start the Next.js application in production mo
+# CMD ["node", "/app/node_modules/.bin/next", "start"]
+CMD ["node_modules/next/dist/bin/next", "start"]
+
+
+
+
